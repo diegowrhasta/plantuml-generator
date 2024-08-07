@@ -1,0 +1,32 @@
+name: Generate UML diagrams
+
+on:
+  push:
+    branches:
+      - main  # Trigger the workflow on pushes to the main branch
+  pull_request:
+    branches:
+      - main  # Trigger the workflow on pull requests to the main branch
+
+jobs:
+  read-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Read file content
+        id: read_file
+        run: |
+          file_path="./docs/component.plantuml"
+          if [ -f "$file_path" ]; then
+            file_content=$(cat "$file_path")
+            echo "file_content=$file_content" >> $GITHUB_ENV
+          else
+            echo "File not found: $file_path"
+            exit 1
+          fi
+
+      - name: Display file content
+        run: echo "$file_content"
