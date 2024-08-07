@@ -1,0 +1,5 @@
+@startuml
+Bob -> Alice : hello
+Darwin -> Yes : bye
+Nick -> Ellis : ammo
+@enduml
