@@ -22,11 +22,11 @@ jobs:
           file_path="./docs/component.plantuml"
           if [ -f "$file_path" ]; then
             file_content=$(cat "$file_path")
-            echo "file_content=$file_content" >> $GITHUB_ENV
+            echo "::set-output name=file_content::$file_content"
           else
             echo "File not found: $file_path"
             exit 1
           fi
 
       - name: Display file content
-        run: echo "$file_content"
+        run: echo "${{ steps.read_file.outputs.file_content }}"
