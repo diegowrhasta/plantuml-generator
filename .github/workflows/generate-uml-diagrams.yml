@@ -15,39 +15,48 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      with:
+        persist-credentials: true
 
-      - name: Read file content
-        id: read_file
+      - name: Read and process files
+        id: read_files
         run: |
-          file_path="./docs/component.plantuml"
-          if [ -f "$file_path" ]; then
-            file_content=$(cat "$file_path")
-            echo "file_content<<EOF" >> $GITHUB_OUTPUT
-            echo "$file_content" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "File not found: $file_path"
-            exit 1
-          fi
+          # Create a temporary directory to store the generated SVGs
+          mkdir -p svgs
 
-      - name: Display file content
-        run: echo "${{ steps.read_file.outputs.file_content }}"
-      - name: POST to Kroki
-        run: |
-          diagram_source=$(echo "${{ steps.read_file.outputs.file_content }}")
-          payload=$(jq -n --arg ds "$diagram_source" '{diagram_source: $ds}')
-          curl -X POST https://kroki.io/plantuml/svg \
-            -H "Content-Type: application/json" \
-            -d "$payload" \
-            -o file.svg
-        env:
-          file_content: ${{ steps.read_file.outputs.file_content }}
-      - name: Commit file.svg
+          # Find all files in the docs directory and process each one
+          for file in docs/*; do
+            if [ -f "$file" ]; then
+              file_name=$(basename "$file")
+              file_content=$(cat "$file")
+              svg_file="svgs/${file_name%.*}.svg"
+              
+              echo "Processing $file_name"
+              
+              # Save the file content to the output variable
+              echo "file_name=$file_name" >> $GITHUB_ENV
+              echo "file_content<<EOF" >> $GITHUB_ENV
+              echo "$file_content" >> $GITHUB_ENV
+              echo "EOF" >> $GITHUB_ENV
+
+              # POST to Kroki and save the response
+              diagram_source=$(echo "$file_content")
+              payload=$(jq -n --arg ds "$diagram_source" '{diagram_source: $ds}')
+              curl -X POST https://kroki.io/plantuml/svg \
+                -H "Content-Type: application/json" \
+                -d "$payload" \
+                -o "$svg_file"
+
+              # Add the generated SVG to git
+              git add "$svg_file"
+            fi
+          done
+
+      - name: Commit SVG files
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add file.svg
-          git commit -m 'Add generated file.svg from Kroki response'
+          git commit -m 'Add generated SVG files from Kroki responses'
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
