@@ -1,4 +1,4 @@
-name: Generate UML diagrams
+name: Read Docs File
 
 on:
   push:
@@ -19,10 +19,12 @@ jobs:
       - name: Read file content
         id: read_file
         run: |
-          file_path="./docs/component.plantuml"
+          file_path="./docs/yourfile.txt"
           if [ -f "$file_path" ]; then
             file_content=$(cat "$file_path")
-            echo "{file_content}={file_content}" >> $GITHUB_OUTPUT
+            echo "file_content<<EOF" >> $GITHUB_OUTPUT
+            echo "$file_content" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
           else
             echo "File not found: $file_path"
             exit 1
