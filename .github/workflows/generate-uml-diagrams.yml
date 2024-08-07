@@ -19,7 +19,7 @@ jobs:
       - name: Read file content
         id: read_file
         run: |
-          file_path="./docs/yourfile.txt"
+          file_path="./docs/component.plantuml"
           if [ -f "$file_path" ]; then
             file_content=$(cat "$file_path")
             echo "file_content<<EOF" >> $GITHUB_OUTPUT
