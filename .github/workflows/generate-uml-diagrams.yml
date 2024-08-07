@@ -22,7 +22,6 @@ jobs:
         id: read_files
         run: |
           # Create a temporary directory to store the generated SVGs
-          git rm -r svgs
           mkdir -p svgs
 
           # Find all files in the docs directory and process each one
